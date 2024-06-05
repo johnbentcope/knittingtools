@@ -1,12 +1,28 @@
-PImage miso;
+PImage misoIn;
 PImage miso2;
+PGraphics mask;
+PGraphics miso;
 
 int num_colors = 1;
 int factor = (num_colors > 1) ? num_colors - 1 : 1;
 
 void setup() {
   size(1536,512);
-  miso = loadImage("misoclip2.png");
+  misoIn = loadImage("misoclip2.png");
+  mask = createGraphics(misoIn.width, misoIn.height);
+  mask.beginDraw();
+  mask.noStroke();
+  mask.fill(0);
+  mask.background(255);
+  mask.ellipseMode(CENTER);
+  mask.ellipse(mask.width/2, mask.height/2,mask.width*0.95, mask.height*0.95);
+  mask.endDraw();
+  miso = createGraphics(mask.width, mask.height);
+  miso.beginDraw();
+  miso.image(misoIn,0,0);
+  miso.blendMode(ADD);
+  miso.image(mask,0,0);
+  miso.beginDraw();
   miso.filter(GRAY);
   miso2 = createImage(512,512,RGB);
   image(miso,0,0,512,512);
@@ -33,9 +49,9 @@ void draw(){
       int new_b = round( factor * old_b / 255.0) * (255 / factor);
       miso.pixels[idx(x,y)] = color(new_r,new_g,new_b);
 
-      float err_r = old_r - new_r;
-      float err_g = old_g - new_g;
-      float err_b = old_b - new_b;
+      float err_r = old_r - new_r/2;
+      float err_g = old_g - new_g/2;
+      float err_b = old_b - new_b/2;
       
       if(y < miso.height-1 && x < miso.width -1){
   
@@ -123,7 +139,7 @@ void stitch(PImage img){
       color test = img.pixels[index(x, y)];
       
       // Greedy run detection
-      if (abs(brightness(test) - brightness(compare)) < 10)
+      if (abs(brightness(test) - brightness(compare)) < 160)
         run++;
       else {
         in_run = true;
@@ -147,7 +163,7 @@ void stitch(PImage img){
             run = 0; //(clear run length because flipped)
             break;
           }
-          if(y == img.height/2) println("at: " + x + ", look: " + x2);
+          //if(y == img.height/2) println("at: " + x + ", look: " + x2);
         }
       }
       
